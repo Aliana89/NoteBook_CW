@@ -29,3 +29,11 @@ def create_note():
     note_obj = Note(id, title, content, created_at, updated_at)
     save_note(note_obj)
     print("Заметка успешно создана и сохранена.")
+
+class Note:
+    def __init__(note, id, title, content, created_at, updated_at):
+        note.id = id
+        note.title = title
+        note.content = content
+        note.created_at = created_at
+        note.updated_at = updated_at
