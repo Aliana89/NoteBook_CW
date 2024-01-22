@@ -1,5 +1,5 @@
 import datetime
-
+import csv
 while True:
     print("1. Создать новую заметку")
     print("2. Прочитать список заметок")
@@ -37,3 +37,7 @@ class Note:
         note.content = content
         note.created_at = created_at
         note.updated_at = updated_at
+def save_note(note):
+    with open('notes.csv', 'a', newline='',encoding='utf-8') as file:
+        writer = csv.writer(file, delimiter=';')
+        writer.writerow([note.id, note.title, note.content, note.created_at, note.updated_at])
