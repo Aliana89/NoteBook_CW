@@ -1,102 +1,176 @@
-import csv
+import json
 import datetime
 
-class Note:
-    def __init__(note, id, title, content, created_at, updated_at):
-        note.id = id
-        note.title = title
-        note.content = content
-        note.created_at = created_at
-        note.updated_at = updated_at
-
-def save_note(note):
-    with open('notes.csv', 'a', newline='',encoding='utf-8') as file:
-        writer = csv.writer(file, delimiter=';')
-        writer.writerow([note.id, note.title, note.content, note.created_at, note.updated_at])
-
-def read_notes():
-    try:
-        with open('notes.csv', 'r',encoding='utf-8') as file:
-            reader = csv.reader(file, delimiter=';')
-            for row in reader:
-                note = Note(row[0], row[1], row[2], row[3], row[4])
-                print("идентификатор:", note.id)
-                print("заголовок:", note.title)
-                print("содержимое:", note.content)
-                print("дата создания:", note.created_at)
-                print("дата последнего изменения:", note.updated_at)
-                print("-------------------------------")
-    except FileNotFoundError:
-        print("файл с заметками не найден.")
-
-def edit_note():
-    id = input("введите идентификатор заметки: ")
-    with open('notes.csv', 'r', encoding='utf-8') as file:
-        reader = csv.reader(file, delimiter=';')
-        rows = list(reader)
-    index = None
-    for i, row in enumerate(rows):
-        if row[0] == id:
-            index = i
-            break
-    if index is not None:
-        title = input("введите новый заголовок заметки: ")
-        content = input("введите новое содержимое заметки: ")
-        updated_at = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
-        rows[index] = [id, title, content, rows[index][3], updated_at]
-        with open('notes.csv', 'w',encoding='utf-8', newline='') as file:
-            writer = csv.writer(file, delimiter=';')
-            writer.writerows(rows)
-        print("заметка успешно отредактирована.")
-    else:
-        print("заметка с таким идентификатором не найдена.")
-
-def delete_note():
-    id = input("введите идентификатор заметки: ")
-    with open('notes.csv', 'r', encoding='utf-8') as file:
-        reader = csv.reader(file, delimiter=';')
-        rows = list(reader)
-    index = None
-    for i, row in enumerate(rows):
-        if row[0] == id:
-            index = i
-            break
-    if index is not None:
-        del rows[index]
-        with open('notes.csv', 'w',encoding='utf-8', newline='') as file:
-            writer = csv.writer(file, delimiter=';')
-            writer.writerows(rows)
-        print("заметка успешно удалена.")
-    else:
-        print("заметка с таким идентификатором не найдена.")
-
 def create_note():
-    id = input("введите идентификатор заметки: ")
-    title = input("введите заголовок заметки: ")
-    content = input("введите содержимое заметки: ")
-    created_at = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
-    updated_at = created_at
-    note_obj = Note(id, title, content, created_at, updated_at)
-    save_note(note_obj)
-    print("заметка успешно создана и сохранена.")
+    note_id = input("Введите id заметки: ")
+    title = input("Введите заголовок заметки: ")
+    body = input("Введите текст заметки: ")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    note = {
+        "id": note_id,
+        "title": title,
+        "body": body,
+        "timestamp": timestamp
+    }
+    
+    return note
 
-# пример использования функционала работы с заметками
-while True:
-    print("1. создать новую заметку")
-    print("2. прочитать список заметок")
-    print("3. редактировать заметку")
-    print("4. удалить заметку")
-    print("5. выход")
-    choice = input("выберите действие (введите цифру): ")
-    if choice == "1":
-        create_note()
-    elif choice == "2":
-        read_notes()
-    elif choice == "3":
-        edit_note()
-    elif choice == "4":
-        delete_note()
-    elif choice == "5":
-        break
-    else:
-        print("некорректный выбор. пожалуйста, повторите.")
+def save_note(note, notebook):
+    notes = []
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+    except FileNotFoundError:
+        pass
+    notes.append(note)
+    with open(notebook, 'w') as file:
+        json.dump(notes, file)
+
+
+def read_notes(notebook):
+    notes = []
+    
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+            
+        for note in notes:
+            print("ID: ", note["id"])
+            print("Заголовок: ", note["title"])
+            print("Текст: ", note["body"])
+            print("Дата/Время: ", note["timestamp"])
+            print("-----")
+    except FileNotFoundError:
+        print("Файл с заметками не найден.")
+
+def show_note(notebook, note_id):
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+        
+        for note in notes:
+            if note["id"] == note_id:
+                print("id: ", note["id"])
+                print("заголовок: ", note["title"])
+                print("текст: ", note["body"])
+                print("дата/время: ", note["timestamp"])
+                print("-----")
+                break
+        else:
+            print("Заметка с таким id не найдена.")
+    except FileNotFoundError:
+        print("Файл с заметками не найден.")
+
+def select_notes_by_date(notebook, date):
+    notes = []
+    
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+        
+        selected_notes = [note for note in notes if note["timestamp"].startswith(date)]
+        
+        if len(selected_notes) == 0:
+            print("Заметки с такой датой не найдены.")
+        else:
+            for note in selected_notes:
+                print("id: ", note["id"])
+                print("заголовок: ", note["title"])
+                print("текст: ", note["body"])
+                print("дата/время: ", note["timestamp"])
+                print("-----")
+    except FileNotFoundError:
+        print("Файл с заметками не найден.")        
+
+
+def edit_note(notebook):
+    note_id = input("Введите идентификатор заметки для редактирования: ")
+    
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+            
+        for note in notes:
+            if note["id"] == note_id:
+                print("Редактирование заметки с ID ", note_id)
+                new_title = input("Введите новый заголовок: ")
+                new_body = input("Введите новый текст: ")
+                note["title"] = new_title
+                note["body"] = new_body
+                note["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                break
+        else:
+            print("Заметка с таким ID не найдена.")
+            return
+        
+        with open(notebook, 'w') as file:
+            json.dump(notes, file)
+            
+        print("Заметка успешно отредактирована.")
+    except FileNotFoundError:
+        print("Файл с заметками не найден.")
+
+
+def delete_note(notebook):
+    note_id = input("Введите идентификатор заметки для удаления: ")
+    
+    try:
+        with open(notebook, 'r') as file:
+            notes = json.load(file)
+            
+        for note in notes:
+            if note["id"] == note_id:
+                notes.remove(note)
+                break
+        else:
+            print("Заметка с таким ID не найдена.")
+            return
+        
+        with open(notebook, 'w') as file:
+            json.dump(notes, file)
+            
+        print("Заметка успешно удалена.")
+    except FileNotFoundError:
+        print("Файл с заметками не найден.")
+
+
+def main():
+    notebook = "notes.json"  # имя файла для сохранения заметок
+    
+    while True:
+        print("1. Создать новую заметку")
+        print("2. Показать список заметок")
+        print("3. Редактировать заметку")
+        print("4. Удалить заметку")
+        print("5. Выбрать заметки по дате")
+        print("6. Показать выбранную запись")
+        print("7. Выйти")
+        
+        choice = input("Выберите действие: ")
+        
+        if choice == "1":
+            note = create_note()
+            save_note(note, notebook)
+            print("Заметка успешно создана и сохранена.")
+        elif choice == "2":
+            read_notes(notebook)
+        elif choice == "3":
+            edit_note(notebook)
+        elif choice == "4":
+            delete_note(notebook)
+        elif choice == "5":
+            date = input("Введите дату (в формате %y-%m-%d): ")
+            select_notes_by_date(notebook, date)
+        elif choice == "6":
+            note_id = input("Введите идентификатор записи: ")
+            show_note(notebook, note_id)
+        elif choice == "7":
+            break
+        else:
+            print("Неверный выбор. попробуйте еще раз.")
+
+
+
+if __name__ == "__main__":
+    main() #Вызов
