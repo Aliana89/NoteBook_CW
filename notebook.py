@@ -160,7 +160,7 @@ def main():
         elif choice == "4":
             delete_note(notebook)
         elif choice == "5":
-            date = input("Введите дату (в формате %y-%m-%d): ")
+            date = input("Введите дату (в формате гггг-мм-дд): ")
             select_notes_by_date(notebook, date)
         elif choice == "6":
             note_id = input("Введите идентификатор записи: ")
